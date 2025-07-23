@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Add your custom styles below this line if needed */
+/*
+body {
+  font-family: 'Inter', sans-serif;
+}
+*/
