@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAyNYgaTVXTPQIKPIH3PxsIFvDb-mWlMRE",
   authDomain: "training-project-ef4bb.firebaseapp.com",
   projectId: "training-project-ef4bb",
   storageBucket: "training-project-ef4bb.appspot.com", // <-- fix: should be .appspot.com
