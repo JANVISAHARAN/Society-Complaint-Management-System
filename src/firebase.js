@@ -6,11 +6,12 @@ import { Link } from "react-router-dom";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
+  apiKey: "AIzaSyAyNYgaTVXTPQIKPIH3PxsIFvDb-mWlMRE",
   authDomain: "training-project-ef4bb.firebaseapp.com",
   projectId: "training-project-ef4bb",
   storageBucket: "training-project-ef4bb.appspot.com", // <-- fix: should be .appspot.com
   messagingSenderId: "872269063989",
-  appId: "1:872269063989:web:d922ee722767d6fa878e7c"
+  appId: "1:872269063989:web:d922ee722767d6fa878e7c",
 };
 
 // Initialize Firebase
