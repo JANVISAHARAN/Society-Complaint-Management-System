@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "../firebase";
 import { Link } from "react-router-dom";
 
 const Register = () => {
@@ -14,7 +15,17 @@ const Register = () => {
     setError("");
     setSuccess("");
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+      // CHANGED: create a matching users/{uid} doc with a default role.
+      // Every account starts as 'resident' — admin is granted manually
+      // in the Firebase console, never through client-side signup.
+      await setDoc(doc(db, "users", cred.user.uid), {
+        email: cred.user.email,
+        role: "resident",
+        createdAt: serverTimestamp(),
+      });
+
       setSuccess("Registration successful! You can now log in.");
       setEmail("");
       setPassword("");
@@ -57,4 +68,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;
