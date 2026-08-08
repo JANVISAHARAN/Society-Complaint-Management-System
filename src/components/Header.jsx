@@ -31,6 +31,10 @@ const Header = () => {
     { name: "Contact", href: "/contact" },
     // CHANGED: Admin link only shows up for admins — regular residents never see it
     ...(isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
+    // CHANGED: residents (not admins) can see a link to request admin access
+    ...(userId && !isAdmin
+      ? [{ name: "Request Admin", href: "/request-admin" }]
+      : []),
   ];
 
   // CHANGED: small helper so we don't duplicate this JSX twice (desktop + mobile)

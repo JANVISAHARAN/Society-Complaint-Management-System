@@ -15,6 +15,7 @@ import Register from "./components/Register";
 import FileComplaint from "./components/FileComplaint";
 import MyComplaint from "./components/MyComplaint";
 import AdminDashboard from "./components/AdminDashboard";
+import RequestAdmin from "./components/RequestAdmin";
 import { ComplaintsProvider } from "./components/ComplaintsContext";
 import {
   ProtectedRoute,
@@ -101,6 +102,16 @@ function App() {
                     <MyComplaint />
                     <Footer />
                   </>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* CHANGED: any logged-in resident can request admin access */}
+            <Route
+              path="/request-admin"
+              element={
+                <ProtectedRoute>
+                  <RequestAdmin />
                 </ProtectedRoute>
               }
             />
