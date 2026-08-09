@@ -35,18 +35,22 @@ const AdminDashboard = () => {
     allComplaints,
     updateComplaintStatus,
     isAdmin,
+    isOwner,               // CHANGED
     loading,
-    pendingAdminRequests,   // CHANGED
-    reviewAdminRequest,      // CHANGED
+    pendingAdminRequests,
+    reviewAdminRequest,
+    admins,
+    demoteAdmin,
+    transferOwnership,      // CHANGED
+    userId,
   } = useComplaints();
   const [updatingId, setUpdatingId] = useState(null);
-  const [reviewingId, setReviewingId] = useState(null); // CHANGED
+  const [reviewingId, setReviewingId] = useState(null);
+  const [demotingId, setDemotingId] = useState(null);
+  const [transferringId, setTransferringId] = useState(null); // CHANGED
 
   if (loading) return null;
 
-  // Belt-and-suspenders: AdminRoute already blocks non-admins from reaching
-  // this component, but this guard means the component is safe even if
-  // it's ever rendered somewhere else by mistake.
   if (!isAdmin) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-gray-50 pt-20 pb-8">
@@ -84,10 +88,15 @@ const AdminDashboard = () => {
         </h2>
         <p className="text-center text-gray-500 mb-8">
           {allComplaints.length} total complaint{allComplaints.length === 1 ? '' : 's'} across all residents.
+          {!isOwner && (
+            <span className="block text-sm text-gray-400 mt-1">
+              Role management is handled by the owner.
+            </span>
+          )}
         </p>
 
-        {/* CHANGED: pending admin-access requests, only ever visible to admins */}
-        {pendingAdminRequests.length > 0 && (
+        {/* CHANGED: everything below is owner-only now */}
+        {isOwner && pendingAdminRequests.length > 0 && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
             <h3 className="text-xl font-bold text-yellow-800 mb-4">
               Pending Admin Requests ({pendingAdminRequests.length})
@@ -107,8 +116,10 @@ const AdminDashboard = () => {
                       disabled={reviewingId === req.id}
                       onClick={async () => {
                         setReviewingId(req.id);
-                        await reviewAdminRequest(req, 'approved');
+                        const result = await reviewAdminRequest(req, 'approved');
                         setReviewingId(null);
+                        if (result.ok) alert(`${req.email} has been approved as an admin.`);
+                        else alert(`Could not approve this request: ${result.message}`);
                       }}
                       className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
                     >
@@ -118,12 +129,74 @@ const AdminDashboard = () => {
                       disabled={reviewingId === req.id}
                       onClick={async () => {
                         setReviewingId(req.id);
-                        await reviewAdminRequest(req, 'rejected');
+                        const result = await reviewAdminRequest(req, 'rejected');
                         setReviewingId(null);
+                        if (result.ok) alert(`${req.email}'s request has been rejected.`);
+                        else alert(`Could not reject this request: ${result.message}`);
                       }}
                       className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md text-sm hover:bg-gray-300 disabled:opacity-50"
                     >
                       Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isOwner && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+            <h3 className="text-xl font-bold text-blue-800 mb-4">
+              Current Admins &amp; Owner ({admins.length})
+            </h3>
+            <div className="space-y-3">
+              {admins.map((admin) => (
+                <div
+                  key={admin.id}
+                  className="flex items-center justify-between bg-white rounded-md border border-blue-100 p-4"
+                >
+                  <p className="font-semibold text-gray-800">
+                    {admin.email}
+                    {admin.id === userId && <span className="text-xs text-gray-400 ml-2">(you)</span>}
+                    {admin.role === 'owner' && (
+                      <Tag value="Owner" severity="success" className="ml-2" />
+                    )}
+                  </p>
+                  <div className="flex gap-2">
+                    {/* CHANGED: transfer ownership — only offered for existing admins, never for the owner's own row */}
+                    {admin.role === 'admin' && (
+                      <button
+                        disabled={transferringId === admin.id}
+                        onClick={async () => {
+                          if (!window.confirm(
+                            `Make ${admin.email} the new owner? You will become a regular admin and lose owner privileges immediately.`
+                          )) return;
+                          setTransferringId(admin.id);
+                          const result = await transferOwnership(admin.id);
+                          setTransferringId(null);
+                          if (result.ok) alert(`Ownership transferred to ${admin.email}.`);
+                          else alert(`Could not transfer ownership: ${result.message}`);
+                        }}
+                        className="bg-purple-600 text-white px-3 py-2 rounded-md text-sm hover:bg-purple-700 disabled:opacity-40"
+                      >
+                        Make Owner
+                      </button>
+                    )}
+                    <button
+                      disabled={admin.id === userId || demotingId === admin.id}
+                      onClick={async () => {
+                        if (!window.confirm(`Revoke admin access for ${admin.email}?`)) return;
+                        setDemotingId(admin.id);
+                        const result = await demoteAdmin(admin.id);
+                        setDemotingId(null);
+                        if (result.ok) alert(`${admin.email} is no longer an admin.`);
+                        else alert(`Could not revoke access: ${result.message}`);
+                      }}
+                      className="bg-red-600 text-white px-4 py-2 rounded-md text-sm hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={admin.id === userId ? "You can't revoke your own access" : undefined}
+                    >
+                      Revoke Admin
                     </button>
                   </div>
                 </div>
